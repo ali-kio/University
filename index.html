@@ -4,9 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>منظم الجدول الجامعي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="theme-color" content="#2f8f66" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -43,10 +46,6 @@
           <div class="quick-num" id="quickExamCount">0</div>
           <div class="quick-label">اختبارات قادمة</div>
         </div>
-        <div class="quick-card">
-          <div class="quick-num" id="quickCgpa">0.00</div>
-          <div class="quick-label">المعدل التراكمي</div>
-        </div>
       </div>
     </section>
 
@@ -59,31 +58,8 @@
         </button>
       </header>
 
-      <div class="day-pills" id="dayPills">
-        <button class="day-pill" data-day="H">H</button>
-        <button class="day-pill" data-day="W">W</button>
-        <button class="day-pill" data-day="T">T</button>
-        <button class="day-pill" data-day="M">M</button>
-        <button class="day-pill" data-day="U">U</button>
-      </div>
-
-      <div class="weekly-grid" id="weeklyGrid"></div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>المقرر</th>
-              <th>الشعبة</th>
-              <th>الدكتور</th>
-              <th>الأيام</th>
-              <th>الوقت</th>
-              <th>الموقع</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="coursesTableBody"></tbody>
-        </table>
+      <div class="time-grid-wrap">
+        <div class="time-grid" id="timeGrid"></div>
       </div>
 
       <details class="collapsible">
@@ -131,7 +107,31 @@
         </form>
       </details>
 
-      <h2 class="section-title">مواعيد الاختبارات</h2>
+      <h2 class="section-title">مقرراتك</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>المقرر</th>
+              <th>الشعبة</th>
+              <th>الدكتور</th>
+              <th>الأيام</th>
+              <th>الوقت</th>
+              <th>الموقع</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="coursesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== الاختبارات ===== -->
+    <section class="tab-panel" id="tab-exams">
+      <header class="top-bar">
+        <h1>الاختبارات</h1>
+      </header>
+
       <div class="exams-header">
         <div id="countdown" class="countdown">لا يوجد اختبار قادم</div>
       </div>
@@ -173,30 +173,6 @@
           </div>
         </form>
       </details>
-    </section>
-
-    <!-- ===== المعدل التراكمي ===== -->
-    <section class="tab-panel" id="tab-gpa">
-      <header class="top-bar">
-        <h1>حساب المعدل التراكمي</h1>
-      </header>
-
-      <div class="card">
-        <div class="gpa-summary">
-          <div class="gpa-stat">
-            <div class="gpa-stat-label">الساعات المعتمدة</div>
-            <div class="gpa-stat-value" id="totalCreditHours">0</div>
-          </div>
-          <div class="gpa-stat">
-            <div class="gpa-stat-label">المعدل التراكمي</div>
-            <div class="gpa-stat-value accent" id="totalCgpa">0.00</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="semestersList" class="stack"></div>
-
-      <button id="addSemesterBtn" class="btn btn-outline-block" type="button">+ إضافة فصل دراسي</button>
     </section>
 
     <!-- ===== الإعدادات ===== -->
@@ -255,11 +231,11 @@
         </span>
         <span class="nav-label">الجدول</span>
       </button>
-      <button class="nav-btn" data-tab="tab-gpa">
+      <button class="nav-btn" data-tab="tab-exams">
         <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17v-3.5l9-4 9 4V17"/><path d="M6.5 12v4.2c0 .5.3.9.8 1.1 1.6.7 3.5 1.1 5.7 1.1s4.1-.4 5.7-1.1c.5-.2.8-.6.8-1.1V12"/><path d="M21 13.5v4.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M9 3.5V3a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 3v.5"/><path d="m9 12 2 2 4-4"/></svg>
         </span>
-        <span class="nav-label">المعدل</span>
+        <span class="nav-label">الاختبارات</span>
       </button>
       <button class="nav-btn" data-tab="tab-settings">
         <span class="nav-icon">

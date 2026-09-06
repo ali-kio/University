@@ -6,29 +6,22 @@ const STORAGE_KEYS = {
   theme: "uni_schedule_theme",
   reminderOffset: "uni_schedule_reminder_offset",
   examNotifyEnabled: "uni_schedule_exam_notify_enabled",
-  gpaSemesters: "uni_schedule_gpa_semesters",
 };
 
 const DAYS = [
-  { key: "U", label: "U الأحد", jsDay: 0 },
-  { key: "M", label: "M الاثنين", jsDay: 1 },
-  { key: "T", label: "T الثلاثاء", jsDay: 2 },
-  { key: "W", label: "W الأربعاء", jsDay: 3 },
-  { key: "H", label: "H الخميس", jsDay: 4 },
+  { key: "U", label: "الأحد", jsDay: 0 },
+  { key: "M", label: "الاثنين", jsDay: 1 },
+  { key: "T", label: "الثلاثاء", jsDay: 2 },
+  { key: "W", label: "الأربعاء", jsDay: 3 },
+  { key: "H", label: "الخميس", jsDay: 4 },
 ];
 
-const GRADE_POINTS = {
-  "A+": 4.0, "A": 4.0, "A-": 3.7,
-  "B+": 3.3, "B": 3.0, "B-": 2.7,
-  "C+": 2.3, "C": 2.0, "C-": 1.7,
-  "D+": 1.3, "D": 1.0, "F": 0.0,
-};
+const CARD_COLORS = ["c-blue", "c-orange", "c-green", "c-purple", "c-pink"];
 
 let courses = loadData(STORAGE_KEYS.courses, []);
 let exams = loadData(STORAGE_KEYS.exams, []);
 let notifiedMap = loadData(STORAGE_KEYS.notified, {});
 let lectureNotifiedMap = loadData(STORAGE_KEYS.lectureNotified, {});
-let gpaSemesters = loadData(STORAGE_KEYS.gpaSemesters, []);
 
 // ---------- helpers ----------
 function generateId() {
@@ -73,12 +66,10 @@ function switchTab(tabId) {
   tabPanels.forEach((panel) => panel.classList.toggle("active", panel.id === tabId));
   navButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tabId));
   if (tabId === "tab-home") renderHome();
-  if (tabId === "tab-gpa") renderGpa();
+  if (tabId === "tab-schedule") renderTimeGrid();
 }
 
-navButtons.forEach((btn) => {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-});
+navButtons.forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
 
 // ---------- theme ----------
 const themeToggle = document.getElementById("themeToggle");
@@ -89,7 +80,6 @@ function applyTheme(theme) {
   const isDark = theme === "dark";
   themeToggle.textContent = isDark ? "مفعّل" : "إيقاف";
   themeToggle.classList.toggle("on", isDark);
-  themeToggleHome.textContent = isDark ? "☀️" : "🌙";
 }
 
 function initTheme() {
@@ -108,40 +98,9 @@ function toggleTheme() {
 themeToggle.addEventListener("click", toggleTheme);
 themeToggleHome.addEventListener("click", toggleTheme);
 
-// ---------- schedule rendering ----------
-const weeklyGrid = document.getElementById("weeklyGrid");
+// ---------- schedule: time grid ----------
+const timeGrid = document.getElementById("timeGrid");
 const coursesTableBody = document.getElementById("coursesTableBody");
-const examsList = document.getElementById("examsList");
-const countdown = document.getElementById("countdown");
-
-const dayPills = document.querySelectorAll(".day-pill");
-
-function highlightToday() {
-  const jsToday = new Date().getDay();
-  const todayKey = (DAYS.find((d) => d.jsDay === jsToday) || {}).key;
-  dayPills.forEach((pill) => pill.classList.toggle("active", pill.dataset.day === todayKey));
-}
-
-dayPills.forEach((pill) => {
-  pill.addEventListener("click", () => {
-    dayPills.forEach((p) => p.classList.remove("active"));
-    pill.classList.add("active");
-    const col = weeklyGrid.querySelector(`.day-column[data-day="${pill.dataset.day}"]`);
-    if (col) col.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  });
-});
-
-highlightToday();
-
-function renderAll() {
-  renderWeekly();
-  renderCoursesTable();
-  renderExams();
-  updateCountdown();
-  renderHome();
-}
-
-const CARD_COLORS = ["c-gray", "c-pink", "c-purple", "c-yellow", "c-blue"];
 
 function colorForCourse(course) {
   if (!course.colorClass) {
@@ -151,8 +110,49 @@ function colorForCourse(course) {
   return course.colorClass;
 }
 
-function renderWeekly() {
-  weeklyGrid.innerHTML = "";
+const ROW_MIN = 30; // minutes per grid row
+const ROW_HEIGHT = 26; // px per row
+
+function renderTimeGrid() {
+  timeGrid.innerHTML = "";
+
+  if (!courses.length) {
+    timeGrid.innerHTML = `<div class="empty-state">لا توجد محاضرات مضافة بعد.</div>`;
+    return;
+  }
+
+  let minStart = Math.min(...courses.map((c) => timeToMinutes(c.start)));
+  let maxEnd = Math.max(...courses.map((c) => timeToMinutes(c.end)));
+  const dayStart = Math.floor(minStart / 60) * 60;
+  const dayEnd = Math.ceil(maxEnd / 60) * 60;
+  const totalRows = Math.max(1, Math.round((dayEnd - dayStart) / ROW_MIN));
+
+  timeGrid.style.setProperty("--tg-cols", `44px repeat(${DAYS.length}, 1fr)`);
+
+  const header = document.createElement("div");
+  header.className = "tg-header";
+  header.innerHTML = `<div class="tg-header-cell"></div>` +
+    DAYS.map((d) => `<div class="tg-header-cell">${d.key}<br>${d.label}</div>`).join("");
+  timeGrid.appendChild(header);
+
+  const body = document.createElement("div");
+  body.className = "tg-body";
+  body.style.height = `${totalRows * ROW_HEIGHT}px`;
+
+  const timeCol = document.createElement("div");
+  timeCol.className = "tg-time-col";
+  for (let m = dayStart; m <= dayEnd; m += 60) {
+    const top = ((m - dayStart) / ROW_MIN) * ROW_HEIGHT;
+    const label = document.createElement("div");
+    label.className = "tg-time-label";
+    label.style.top = `${top}px`;
+    const hour = Math.floor(m / 60);
+    const suffix = hour < 12 ? "ص" : "م";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    label.textContent = `${displayHour} ${suffix}`;
+    timeCol.appendChild(label);
+  }
+  body.appendChild(timeCol);
 
   const byDay = Object.fromEntries(DAYS.map((d) => [d.key, []]));
   courses.forEach((course) => {
@@ -160,34 +160,39 @@ function renderWeekly() {
   });
 
   DAYS.forEach((day) => {
-    byDay[day.key].sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
-
     const col = document.createElement("div");
-    col.className = "day-column";
-    col.dataset.day = day.key;
+    col.className = "tg-day-col";
 
-    if (!byDay[day.key].length) {
-      col.innerHTML = `<div class="small day-empty">—</div>`;
-    } else {
-      byDay[day.key].forEach((course) => col.appendChild(buildCourseCard(course)));
+    for (let m = dayStart; m <= dayEnd; m += 60) {
+      const top = ((m - dayStart) / ROW_MIN) * ROW_HEIGHT;
+      const line = document.createElement("div");
+      line.className = "tg-hour-line";
+      line.style.top = `${top}px`;
+      col.appendChild(line);
     }
 
-    weeklyGrid.appendChild(col);
-  });
-}
+    byDay[day.key].forEach((course) => {
+      const startMin = timeToMinutes(course.start);
+      const endMin = timeToMinutes(course.end);
+      const top = ((startMin - dayStart) / ROW_MIN) * ROW_HEIGHT;
+      const height = Math.max(((endMin - startMin) / ROW_MIN) * ROW_HEIGHT, 20);
 
-function buildCourseCard(course) {
-  const card = document.createElement("div");
-  card.className = `course-card ${colorForCourse(course)}`;
-  card.innerHTML = `
-    <div class="course-code">${course.name.split(" - ")[0] || course.name}</div>
-    <hr />
-    <div class="course-time">${course.start}</div>
-    <div class="course-time">${course.end}</div>
-    <div class="course-loc">${course.location}</div>
-    <div class="course-type">LEC</div>
-  `;
-  return card;
+      const block = document.createElement("div");
+      block.className = `tg-block ${colorForCourse(course)}`;
+      block.style.top = `${top}px`;
+      block.style.height = `${height}px`;
+      block.innerHTML = `
+        <span class="tg-code">${course.name.split(" - ")[0] || course.name}</span>
+        <span class="tg-time">${course.start}</span>
+        <span class="tg-loc">${course.location}</span>
+      `;
+      col.appendChild(block);
+    });
+
+    body.appendChild(col);
+  });
+
+  timeGrid.appendChild(body);
 }
 
 function renderCoursesTable() {
@@ -209,6 +214,10 @@ function renderCoursesTable() {
     coursesTableBody.appendChild(tr);
   });
 }
+
+// ---------- exams ----------
+const examsList = document.getElementById("examsList");
+const countdown = document.getElementById("countdown");
 
 function renderExams() {
   examsList.innerHTML = "";
@@ -251,15 +260,21 @@ function getNextUpcomingExam() {
 
 function updateCountdown() {
   const next = getNextUpcomingExam();
-  if (!next) {
-    countdown.textContent = "لا يوجد اختبار قادم";
-    return;
-  }
+  if (!next) { countdown.textContent = "لا يوجد اختبار قادم"; return; }
   const diffMs = next.dateTime - new Date();
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
   const mins = Math.floor((diffMs / (1000 * 60)) % 60);
   countdown.textContent = `أقرب اختبار (${next.courseName} - ${next.type}) بعد ${days} يوم ${hours} ساعة ${mins} دقيقة`;
+}
+
+// ---------- render all ----------
+function renderAll() {
+  renderTimeGrid();
+  renderCoursesTable();
+  renderExams();
+  updateCountdown();
+  renderHome();
 }
 
 function resetCourseForm() {
@@ -285,6 +300,7 @@ document.getElementById("courseForm").addEventListener("submit", (e) => {
 
   const idx = courses.findIndex((c) => c.id === id);
   const existingColor = idx >= 0 ? courses[idx].colorClass : null;
+
   const course = {
     id,
     name: document.getElementById("courseName").value.trim(),
@@ -403,129 +419,7 @@ function renderHome() {
 
   document.getElementById("quickCourseCount").textContent = courses.length;
   document.getElementById("quickExamCount").textContent = exams.filter((e) => toDateTime(e.date, e.start) > new Date()).length;
-  document.getElementById("quickCgpa").textContent = computeCgpa().cgpa.toFixed(2);
 }
-
-// ---------- GPA calculator ----------
-function computeSgpa(semester) {
-  let points = 0, hours = 0;
-  semester.courses.forEach((c) => {
-    const gp = GRADE_POINTS[c.grade];
-    const ch = Number(c.creditHours) || 0;
-    if (gp !== undefined && ch > 0) { points += gp * ch; hours += ch; }
-  });
-  return { sgpa: hours ? points / hours : 0, hours };
-}
-
-function computeCgpa() {
-  let points = 0, hours = 0;
-  gpaSemesters.forEach((sem) => {
-    sem.courses.forEach((c) => {
-      const gp = GRADE_POINTS[c.grade];
-      const ch = Number(c.creditHours) || 0;
-      if (gp !== undefined && ch > 0) { points += gp * ch; hours += ch; }
-    });
-  });
-  return { cgpa: hours ? points / hours : 0, hours };
-}
-
-function renderGpa() {
-  const list = document.getElementById("semestersList");
-  const { cgpa, hours } = computeCgpa();
-  document.getElementById("totalCreditHours").textContent = hours;
-  document.getElementById("totalCgpa").textContent = cgpa.toFixed(2);
-
-  if (!gpaSemesters.length) {
-    list.innerHTML = `<div class="empty-state">لا توجد فصول دراسية بعد. أضف فصلك الأول من الزر بالأسفل.</div>`;
-    return;
-  }
-
-  list.innerHTML = gpaSemesters.map((sem) => {
-    const { sgpa, hours: semHours } = computeSgpa(sem);
-    const rows = sem.courses.map((c) => `
-      <div class="gpa-course-row">
-        <input type="text" value="${c.name}" placeholder="اسم المقرر" data-action="course-name" data-sem="${sem.id}" data-course="${c.id}" />
-        <select data-action="course-grade" data-sem="${sem.id}" data-course="${c.id}">
-          <option value="">-</option>
-          ${Object.keys(GRADE_POINTS).map((g) => `<option value="${g}" ${c.grade === g ? "selected" : ""}>${g}</option>`).join("")}
-        </select>
-        <input type="number" min="0" step="1" value="${c.creditHours || ""}" placeholder="ساعات" data-action="course-hours" data-sem="${sem.id}" data-course="${c.id}" />
-        <button class="gpa-mini-btn" data-action="delete-course" data-sem="${sem.id}" data-course="${c.id}">×</button>
-      </div>
-    `).join("");
-
-    return `
-      <div class="semester-card">
-        <div class="semester-header">
-          <input type="text" class="semester-name-input" value="${sem.name}" data-action="rename-semester" data-sem="${sem.id}" style="font-weight:700;border:none;background:transparent;padding:0;width:auto;flex:1;color:var(--primary);" />
-          <div class="semester-badges">
-            <span class="badge">CH ${semHours}</span>
-            <span class="badge">SGPA ${sgpa.toFixed(2)}</span>
-          </div>
-        </div>
-        ${rows || '<div class="empty-state">لا توجد مقررات بهذا الفصل</div>'}
-        <div class="add-course-row">
-          <button class="btn" data-action="add-course" data-sem="${sem.id}">+ إضافة مقرر</button>
-          <button class="semester-delete" data-action="delete-semester" data-sem="${sem.id}">حذف الفصل</button>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-document.getElementById("addSemesterBtn").addEventListener("click", () => {
-  gpaSemesters.push({ id: generateId(), name: `فصل دراسي ${gpaSemesters.length + 1}`, courses: [] });
-  saveData(STORAGE_KEYS.gpaSemesters, gpaSemesters);
-  renderGpa();
-});
-
-document.getElementById("semestersList").addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof HTMLElement)) return;
-  const action = target.dataset.action;
-  if (!action) return;
-
-  const sem = gpaSemesters.find((s) => s.id === target.dataset.sem);
-  if (!sem) return;
-
-  if (action === "add-course") {
-    sem.courses.push({ id: generateId(), name: "", grade: "", creditHours: "" });
-  } else if (action === "delete-course") {
-    sem.courses = sem.courses.filter((c) => c.id !== target.dataset.course);
-  } else if (action === "delete-semester") {
-    if (!confirm("حذف هذا الفصل بالكامل؟")) return;
-    gpaSemesters = gpaSemesters.filter((s) => s.id !== sem.id);
-  }
-
-  saveData(STORAGE_KEYS.gpaSemesters, gpaSemesters);
-  renderGpa();
-});
-
-document.getElementById("semestersList").addEventListener("change", (e) => {
-  const target = e.target;
-  if (!(target instanceof HTMLElement)) return;
-  const action = target.dataset.action;
-  if (!action) return;
-
-  const sem = gpaSemesters.find((s) => s.id === target.dataset.sem);
-  if (!sem) return;
-
-  if (action === "rename-semester") {
-    sem.name = target.value.trim() || sem.name;
-  } else {
-    const course = sem.courses.find((c) => c.id === target.dataset.course);
-    if (!course) return;
-    if (action === "course-name") course.name = target.value.trim();
-    if (action === "course-grade") course.grade = target.value;
-    if (action === "course-hours") course.creditHours = target.value;
-  }
-
-  saveData(STORAGE_KEYS.gpaSemesters, gpaSemesters);
-  renderHome();
-  const cgpaData = computeCgpa();
-  document.getElementById("totalCreditHours").textContent = cgpaData.hours;
-  document.getElementById("totalCgpa").textContent = cgpaData.cgpa.toFixed(2);
-});
 
 // ---------- settings: reminders & notifications ----------
 const reminderOffsetSelect = document.getElementById("reminderOffset");
@@ -627,7 +521,6 @@ setInterval(() => {
 initTheme();
 initSettings();
 renderAll();
-renderGpa();
 checkExamNotifications();
 checkLectureNotifications();
 

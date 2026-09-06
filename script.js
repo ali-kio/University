@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   theme: "uni_schedule_theme",
   reminderOffset: "uni_schedule_reminder_offset",
   examNotifyEnabled: "uni_schedule_exam_notify_enabled",
+  tasks: "uni_schedule_tasks",
 };
 
 const DAYS = [
@@ -22,6 +23,7 @@ let courses = loadData(STORAGE_KEYS.courses, []);
 let exams = loadData(STORAGE_KEYS.exams, []);
 let notifiedMap = loadData(STORAGE_KEYS.notified, {});
 let lectureNotifiedMap = loadData(STORAGE_KEYS.lectureNotified, {});
+let tasks = loadData(STORAGE_KEYS.tasks, []);
 
 // ---------- helpers ----------
 function generateId() {
@@ -98,7 +100,74 @@ function toggleTheme() {
 themeToggle.addEventListener("click", toggleTheme);
 themeToggleHome.addEventListener("click", toggleTheme);
 
-// ---------- schedule: time grid ----------
+// ---------- course form pills ----------
+const typeRow = document.getElementById("typeRow");
+const courseTypeInput = document.getElementById("courseType");
+const daysRow = document.getElementById("daysRow");
+
+typeRow.querySelectorAll(".pill-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    typeRow.querySelectorAll(".pill-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    courseTypeInput.value = btn.dataset.type;
+  });
+});
+
+function setActiveType(type) {
+  typeRow.querySelectorAll(".pill-btn").forEach((b) => b.classList.toggle("active", b.dataset.type === type));
+  courseTypeInput.value = type;
+}
+
+daysRow.querySelectorAll(".pill-btn").forEach((btn) => {
+  btn.addEventListener("click", () => btn.classList.toggle("active"));
+});
+
+function getSelectedDays() {
+  return [...daysRow.querySelectorAll(".pill-btn.active")].map((b) => b.dataset.day);
+}
+
+function setSelectedDays(days) {
+  daysRow.querySelectorAll(".pill-btn").forEach((b) => b.classList.toggle("active", days.includes(b.dataset.day)));
+}
+
+// ---------- top day-pills (quick nav on the schedule tab) ----------
+const dayPills = document.querySelectorAll("#dayPills .day-pill");
+
+function highlightToday() {
+  const jsToday = new Date().getDay();
+  const todayKey = (DAYS.find((d) => d.jsDay === jsToday) || {}).key;
+  dayPills.forEach((pill) => pill.classList.toggle("active", pill.dataset.day === todayKey));
+}
+
+dayPills.forEach((pill) => {
+  pill.addEventListener("click", () => {
+    dayPills.forEach((p) => p.classList.remove("active"));
+    pill.classList.add("active");
+    const col = timeGrid.querySelector(`.tg-day-col[data-day="${pill.dataset.day}"]`);
+    if (col) col.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  });
+});
+
+highlightToday();
+
+// ---------- toast ----------
+function showToast(message) {
+  let toast = document.getElementById("appToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "appToast";
+    toast.className = "app-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+  toast.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+
 const timeGrid = document.getElementById("timeGrid");
 const coursesTableBody = document.getElementById("coursesTableBody");
 
@@ -162,6 +231,7 @@ function renderTimeGrid() {
   DAYS.forEach((day) => {
     const col = document.createElement("div");
     col.className = "tg-day-col";
+    col.dataset.day = day.key;
 
     for (let m = dayStart; m <= dayEnd; m += 60) {
       const top = ((m - dayStart) / ROW_MIN) * ROW_HEIGHT;
@@ -183,8 +253,9 @@ function renderTimeGrid() {
       block.style.height = `${height}px`;
       block.innerHTML = `
         <span class="tg-code">${course.name.split(" - ")[0] || course.name}</span>
-        <span class="tg-time">${course.start}</span>
+        <span class="tg-time">${course.start} - ${course.end}</span>
         <span class="tg-loc">${course.location}</span>
+        <span class="tg-loc">${course.type || "LEC"}</span>
       `;
       col.appendChild(block);
     });
@@ -205,6 +276,7 @@ function renderCoursesTable() {
       <td>${course.instructor}</td>
       <td>${course.days.join(" - ")}</td>
       <td>${course.start} - ${course.end}</td>
+      <td>${course.type || "LEC"}</td>
       <td>${course.location}</td>
       <td><div class="actions">
         <button class="edit" data-id="${course.id}" data-type="course">تعديل</button>
@@ -275,11 +347,14 @@ function renderAll() {
   renderExams();
   updateCountdown();
   renderHome();
+  renderTasks();
 }
 
 function resetCourseForm() {
   document.getElementById("courseForm").reset();
   document.getElementById("courseId").value = "";
+  setSelectedDays([]);
+  setActiveType("LEC");
 }
 
 function resetExamForm() {
@@ -290,7 +365,7 @@ function resetExamForm() {
 document.getElementById("courseForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const id = document.getElementById("courseId").value || generateId();
-  const days = [...document.querySelectorAll('input[name="days"]:checked')].map((d) => d.value);
+  const days = getSelectedDays();
 
   if (!days.length) { alert("اختر يومًا واحدًا على الأقل للمحاضرة."); return; }
 
@@ -300,6 +375,7 @@ document.getElementById("courseForm").addEventListener("submit", (e) => {
 
   const idx = courses.findIndex((c) => c.id === id);
   const existingColor = idx >= 0 ? courses[idx].colorClass : null;
+  const existingLinkedExamId = idx >= 0 ? courses[idx].linkedExamId : null;
 
   const course = {
     id,
@@ -308,14 +384,41 @@ document.getElementById("courseForm").addEventListener("submit", (e) => {
     instructor: document.getElementById("instructor").value.trim(),
     days, start, end,
     location: document.getElementById("location").value.trim(),
+    type: courseTypeInput.value || "LEC",
     colorClass: existingColor || CARD_COLORS[courses.length % CARD_COLORS.length],
+    linkedExamId: existingLinkedExamId || null,
   };
 
   if (idx >= 0) courses[idx] = course; else courses.push(course);
 
+  // sync the embedded final-exam fields with the exams list
+  const examDate = document.getElementById("courseExamDate").value;
+  const examStart = document.getElementById("courseExamStart").value;
+  const examEnd = document.getElementById("courseExamEnd").value;
+
+  if (examDate && examStart && examEnd) {
+    const examEntry = {
+      id: course.linkedExamId || generateId(),
+      courseName: course.name,
+      type: "نهائي",
+      date: examDate,
+      start: examStart,
+      end: examEnd,
+    };
+    const examIdx = exams.findIndex((x) => x.id === examEntry.id);
+    if (examIdx >= 0) exams[examIdx] = examEntry; else exams.push(examEntry);
+    course.linkedExamId = examEntry.id;
+    saveData(STORAGE_KEYS.exams, exams);
+  } else if (course.linkedExamId) {
+    exams = exams.filter((x) => x.id !== course.linkedExamId);
+    course.linkedExamId = null;
+    saveData(STORAGE_KEYS.exams, exams);
+  }
+
   saveData(STORAGE_KEYS.courses, courses);
   resetCourseForm();
   renderAll();
+  showToast("تم حفظ المقرر ✓");
 });
 
 document.getElementById("examForm").addEventListener("submit", (e) => {
@@ -355,10 +458,21 @@ document.addEventListener("click", (e) => {
     document.getElementById("courseStart").value = course.start;
     document.getElementById("courseEnd").value = course.end;
     document.getElementById("location").value = course.location;
-    document.querySelectorAll('input[name="days"]').forEach((cb) => { cb.checked = course.days.includes(cb.value); });
+    setSelectedDays(course.days);
+    setActiveType(course.type || "LEC");
+
+    const linkedExam = course.linkedExamId ? exams.find((x) => x.id === course.linkedExamId) : null;
+    document.getElementById("courseExamDate").value = linkedExam ? linkedExam.date : "";
+    document.getElementById("courseExamStart").value = linkedExam ? linkedExam.start : "";
+    document.getElementById("courseExamEnd").value = linkedExam ? linkedExam.end : "";
   }
 
   if (target.matches("button[data-type='course'].delete")) {
+    const course = courses.find((c) => c.id === target.dataset.id);
+    if (course && course.linkedExamId) {
+      exams = exams.filter((x) => x.id !== course.linkedExamId);
+      saveData(STORAGE_KEYS.exams, exams);
+    }
     courses = courses.filter((c) => c.id !== target.dataset.id);
     saveData(STORAGE_KEYS.courses, courses);
     renderAll();
@@ -377,7 +491,9 @@ document.addEventListener("click", (e) => {
 
   if (target.matches("button[data-type='exam'].delete")) {
     exams = exams.filter((x) => x.id !== target.dataset.id);
+    courses.forEach((c) => { if (c.linkedExamId === target.dataset.id) c.linkedExamId = null; });
     saveData(STORAGE_KEYS.exams, exams);
+    saveData(STORAGE_KEYS.courses, courses);
     renderAll();
   }
 });
@@ -421,7 +537,67 @@ function renderHome() {
   document.getElementById("quickExamCount").textContent = exams.filter((e) => toDateTime(e.date, e.start) > new Date()).length;
 }
 
-// ---------- settings: reminders & notifications ----------
+// ---------- tasks ----------
+const taskForm = document.getElementById("taskForm");
+const tasksList = document.getElementById("tasksList");
+
+function renderTasks() {
+  if (!tasks.length) {
+    tasksList.innerHTML = `<div class="empty-state">لا توجد مهام حالياً. أضف أول مهمة من الأعلى.</div>`;
+    return;
+  }
+
+  const sorted = tasks.slice().sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+
+  tasksList.innerHTML = sorted.map((t) => `
+    <div class="task-item ${t.done ? "done" : ""}">
+      <button class="task-check" data-id="${t.id}" aria-label="إتمام المهمة">${t.done ? "✓" : ""}</button>
+      <div class="task-body">
+        <div class="task-text">${t.text}</div>
+        ${t.dueDate ? `<div class="task-due">${formatDate(t.dueDate)}</div>` : ""}
+      </div>
+      <button class="task-delete" data-id="${t.id}" aria-label="حذف">×</button>
+    </div>
+  `).join("");
+}
+
+taskForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = document.getElementById("taskText").value.trim();
+  const dueDate = document.getElementById("taskDate").value;
+  if (!text) return;
+  tasks.push({ id: generateId(), text, dueDate, done: false });
+  saveData(STORAGE_KEYS.tasks, tasks);
+  taskForm.reset();
+  renderTasks();
+  showToast("تمت إضافة المهمة ✓");
+});
+
+tasksList.addEventListener("click", (e) => {
+  const target = e.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.matches(".task-check")) {
+    const task = tasks.find((t) => t.id === target.dataset.id);
+    if (!task) return;
+    task.done = !task.done;
+    saveData(STORAGE_KEYS.tasks, tasks);
+    renderTasks();
+  }
+
+  if (target.matches(".task-delete")) {
+    tasks = tasks.filter((t) => t.id !== target.dataset.id);
+    saveData(STORAGE_KEYS.tasks, tasks);
+    renderTasks();
+  }
+});
+
+
 const reminderOffsetSelect = document.getElementById("reminderOffset");
 const notifyBtn = document.getElementById("notifyBtn");
 

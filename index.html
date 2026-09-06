@@ -58,6 +58,14 @@
         </button>
       </header>
 
+      <div class="day-pills" id="dayPills">
+        <button class="day-pill" data-day="H">H</button>
+        <button class="day-pill" data-day="W">W</button>
+        <button class="day-pill" data-day="T">T</button>
+        <button class="day-pill" data-day="M">M</button>
+        <button class="day-pill" data-day="U">U</button>
+      </div>
+
       <div class="time-grid-wrap">
         <div class="time-grid" id="timeGrid"></div>
       </div>
@@ -67,26 +75,21 @@
         <form id="courseForm" class="grid-form">
           <input type="hidden" id="courseId" />
 
-          <label>اسم ورمز المقرر
-            <input id="courseName" type="text" required placeholder="ITCS106" />
+          <label>اسم ورمز المقرر <span class="lang-tag">EN</span>
+            <input id="courseName" type="text" required placeholder="Example: ITCS223" />
+          </label>
+
+          <label>اسم المدرس <span class="lang-tag">AR</span>
+            <input id="instructor" type="text" required placeholder="مثال: د. أحمد" />
           </label>
 
           <label>الشعبة
-            <input id="section" type="text" required placeholder="1" />
+            <input id="section" type="text" required placeholder="مثال: 1" />
           </label>
 
-          <label>اسم الدكتور
-            <input id="instructor" type="text" required placeholder="د." />
+          <label>المبنى والقاعة <span class="lang-tag">EN</span>
+            <input id="location" type="text" required placeholder="Example: S40/2046" />
           </label>
-
-          <fieldset class="days-fieldset">
-            <legend>أيام المحاضرة</legend>
-            <label><input type="checkbox" name="days" value="U" /> U الأحد</label>
-            <label><input type="checkbox" name="days" value="M" /> M الاثنين</label>
-            <label><input type="checkbox" name="days" value="T" /> T الثلاثاء</label>
-            <label><input type="checkbox" name="days" value="W" /> W الأربعاء</label>
-            <label><input type="checkbox" name="days" value="H" /> H الخميس</label>
-          </fieldset>
 
           <label>وقت المحاضرة (من)
             <input id="courseStart" type="time" required />
@@ -96,9 +99,38 @@
             <input id="courseEnd" type="time" required />
           </label>
 
-          <label>المبنى والقاعة
-            <input id="location" type="text" required placeholder="S40/1048" />
-          </label>
+          <div class="field-block">
+            <div class="field-block-title">اختر النوع</div>
+            <div class="pill-row" id="typeRow">
+              <button type="button" class="pill-btn" data-type="LEC">LEC</button>
+              <button type="button" class="pill-btn" data-type="LAB">LAB</button>
+            </div>
+            <input type="hidden" id="courseType" value="LEC" />
+          </div>
+
+          <div class="field-block">
+            <div class="field-block-title">اختر الأيام</div>
+            <div class="pill-row" id="daysRow">
+              <button type="button" class="pill-btn" data-day="H">H</button>
+              <button type="button" class="pill-btn" data-day="W">W</button>
+              <button type="button" class="pill-btn" data-day="T">T</button>
+              <button type="button" class="pill-btn" data-day="M">M</button>
+              <button type="button" class="pill-btn" data-day="U">U</button>
+            </div>
+          </div>
+
+          <div class="field-block">
+            <div class="field-block-title">الامتحان النهائي (اختياري)</div>
+            <label>تاريخ الاختبار
+              <input id="courseExamDate" type="date" />
+            </label>
+            <label>وقت البدء
+              <input id="courseExamStart" type="time" />
+            </label>
+            <label>وقت الانتهاء
+              <input id="courseExamEnd" type="time" />
+            </label>
+          </div>
 
           <div class="form-actions">
             <button type="submit" class="btn">حفظ المقرر</button>
@@ -117,6 +149,7 @@
               <th>الدكتور</th>
               <th>الأيام</th>
               <th>الوقت</th>
+              <th>النوع</th>
               <th>الموقع</th>
               <th>إجراءات</th>
             </tr>
@@ -143,14 +176,14 @@
           <input type="hidden" id="examId" />
 
           <label>اسم المقرر
-            <input id="examCourseName" type="text" required placeholder="ITCS 106" />
+            <input id="examCourseName" type="text" required placeholder="TL101 - TURKISH LANGUAGE" />
           </label>
 
           <label>نوع الاختبار
             <select id="examType" required>
               <option value="">اختر النوع</option>
-              <option value="ميد">ميد</option>
-              <option value="فاينل">فاينل</option>
+              <option value="نصفي">نصفي</option>
+              <option value="نهائي">نهائي</option>
               <option value="كويز">كويز</option>
             </select>
           </label>
@@ -173,6 +206,21 @@
           </div>
         </form>
       </details>
+    </section>
+
+    <!-- ===== المهام ===== -->
+    <section class="tab-panel" id="tab-tasks">
+      <header class="top-bar">
+        <h1>قائمة المهام</h1>
+      </header>
+
+      <form id="taskForm" class="task-add-row">
+        <input id="taskText" type="text" required placeholder="مثال: تسليم واجب البرمجة" />
+        <input id="taskDate" type="date" />
+        <button type="submit" class="btn task-add-btn">+</button>
+      </form>
+
+      <div id="tasksList" class="stack task-list"></div>
     </section>
 
     <!-- ===== الإعدادات ===== -->
@@ -236,6 +284,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M9 3.5V3a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 3v.5"/><path d="m9 12 2 2 4-4"/></svg>
         </span>
         <span class="nav-label">الاختبارات</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-tasks">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.3"/><path d="m5.3 7 1 1 1.8-1.8"/><rect x="4" y="14" width="6" height="6" rx="1.3"/><path d="m5.3 17 1 1 1.8-1.8"/><path d="M13 7h7"/><path d="M13 17h7"/></svg>
+        </span>
+        <span class="nav-label">المهام</span>
       </button>
       <button class="nav-btn" data-tab="tab-settings">
         <span class="nav-icon">

@@ -36,6 +36,16 @@
   --nav-bg: #1c1913;
 }
 
+[data-accent="blue"]   { --primary: #2f6f9f; --secondary: #3a8bc2; }
+[data-accent="purple"] { --primary: #7a5fc4; --secondary: #9077d6; }
+[data-accent="orange"] { --primary: #c67a2e; --secondary: #d99347; }
+[data-accent="pink"]   { --primary: #c4527a; --secondary: #d66f93; }
+
+[data-theme="dark"][data-accent="blue"]   { --primary: #6fb3e0; --secondary: #4fa0d6; }
+[data-theme="dark"][data-accent="purple"] { --primary: #b6a2ec; --secondary: #9c85e0; }
+[data-theme="dark"][data-accent="orange"] { --primary: #eab073; --secondary: #dc9750; }
+[data-theme="dark"][data-accent="pink"]   { --primary: #ea9ab5; --secondary: #db7799; }
+
 * { box-sizing: border-box; }
 
 html {
@@ -126,6 +136,91 @@ body {
   color: #fff;
   border: none;
 }
+
+.highlight-card-alt {
+  background: var(--card-warm);
+  border: 1px solid var(--border);
+  margin-top: 0.6rem;
+}
+
+.highlight-card-alt .highlight-label { color: var(--secondary); opacity: 1; font-weight: 700; }
+.highlight-card-alt .highlight-value { color: var(--text); }
+
+.install-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: var(--card-warm);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.install-banner.hidden { display: none; }
+.install-actions { display: flex; align-items: center; gap: 0.5rem; }
+.install-btn { width: auto; padding: 0.55rem 1.1rem; }
+
+.search-input {
+  margin-bottom: 0.6rem;
+}
+
+.accent-row { display: flex; gap: 0.7rem; margin-bottom: 1rem; }
+
+.accent-swatch {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background: var(--sw);
+  cursor: pointer;
+}
+
+.accent-swatch.active { border-color: var(--text); }
+
+.danger-text { color: var(--danger); }
+.danger-btn { background: var(--danger) !important; color: #fff !important; }
+
+.hide-done-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+.hide-done-row input { width: auto; }
+
+.empty-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  display: block;
+  margin: 0 auto 0.5rem;
+}
+
+.toast-action {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 800;
+  margin-inline-start: 0.6rem;
+  cursor: pointer;
+}
+
+/* tab slide transition */
+@keyframes slideInNext {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInPrev {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.tab-panel.slide-next { animation: slideInNext 0.22s ease; }
+.tab-panel.slide-prev { animation: slideInPrev 0.22s ease; }
 
 .highlight-label { font-size: 0.85rem; opacity: 0.9; }
 .highlight-value { font-size: 1.1rem; font-weight: 800; margin-top: 0.3rem; }

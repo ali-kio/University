@@ -60,18 +60,246 @@ function formatDate(dateStr) {
   return date.toLocaleDateString("ar", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
 }
 
-// ---------- tabs ----------
+function emptyIcon() {
+  return `<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.2"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5"/><path d="M16 3v3.5"/></svg>`;
+}
+
+
 const navButtons = document.querySelectorAll(".nav-btn");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const TAB_ORDER = [...tabPanels].map((p) => p.id);
+let currentTabIndex = 0;
 
 function switchTab(tabId) {
-  tabPanels.forEach((panel) => panel.classList.toggle("active", panel.id === tabId));
+  const newIndex = TAB_ORDER.indexOf(tabId);
+  const direction = newIndex > currentTabIndex ? "next" : "prev";
+  currentTabIndex = newIndex;
+
+  tabPanels.forEach((panel) => {
+    const isTarget = panel.id === tabId;
+    panel.classList.toggle("active", isTarget);
+    if (isTarget) {
+      panel.classList.remove("slide-next", "slide-prev");
+      void panel.offsetWidth;
+      panel.classList.add(direction === "next" ? "slide-next" : "slide-prev");
+    }
+  });
   navButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tabId));
   if (tabId === "tab-home") renderHome();
   if (tabId === "tab-schedule") renderTimeGrid();
 }
 
 navButtons.forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+// ---------- language ----------
+const TRANSLATIONS = {
+  ar: {
+    home_greeting: "مرحبًا 👋",
+    install_title: "ثبّت التطبيق على جهازك",
+    install_sub: "افتحه من شاشتك الرئيسية زي أي تطبيق عادي",
+    install_btn: "تثبيت",
+    next_exam_label: "أقرب اختبار",
+    next_class_label: "حصتك القادمة",
+    no_courses_short: "لا توجد محاضرات مضافة",
+    today_classes_title: "حصص اليوم",
+    quick_overview_title: "نظرة سريعة",
+    quick_courses_label: "مقررات",
+    quick_exams_label: "اختبارات قادمة",
+    quick_tasks_label: "مهام متبقية",
+    schedule_title: "الجدول الدراسي",
+    add_course_summary: "+ إضافة / تعديل مقرر",
+    course_name_label: "اسم ورمز المقرر",
+    instructor_label: "اسم المدرس",
+    section_label: "الشعبة",
+    location_label: "المبنى والقاعة",
+    lecture_start_label: "وقت المحاضرة (من)",
+    lecture_end_label: "وقت المحاضرة (إلى)",
+    choose_type_title: "اختر النوع",
+    choose_days_title: "اختر الأيام",
+    final_exam_title: "الامتحان النهائي (اختياري)",
+    exam_date_label: "تاريخ الاختبار",
+    exam_start_label: "وقت البدء",
+    exam_end_label: "وقت الانتهاء",
+    save_course_btn: "حفظ المقرر",
+    cancel_edit_btn: "إلغاء التعديل",
+    my_courses_title: "مقرراتك",
+    search_placeholder: "ابحث باسم المقرر أو المدرس أو الموقع...",
+    th_course: "المقرر", th_section: "الشعبة", th_instructor: "الدكتور",
+    th_days: "الأيام", th_time: "الوقت", th_type: "النوع", th_location: "الموقع", th_actions: "إجراءات",
+    exams_title: "الاختبارات",
+    add_exam_summary: "+ إضافة / تعديل موعد اختبار",
+    exam_course_label: "اسم المقرر",
+    exam_type_label: "نوع الاختبار",
+    choose_type_option: "اختر النوع",
+    midterm_option: "نصفي", final_option: "نهائي", quiz_option: "كويز",
+    date_label: "التاريخ", time_from_label: "الوقت (من)", time_to_label: "الوقت (إلى)",
+    save_exam_btn: "حفظ الاختبار",
+    tasks_title: "قائمة المهام",
+    task_placeholder: "مثال: تسليم واجب البرمجة",
+    hide_done_label: "إخفاء المهام المنجزة",
+    settings_title: "الإعدادات",
+    dark_mode_label: "الوضع الداكن", dark_mode_sub: "تبديل مظهر التطبيق",
+    reminder_label: "تذكير قبل المحاضرة", reminder_sub: "يرسل إشعار قبل بداية أي محاضرة",
+    off_option: "إيقاف", min5_option: "قبل 5 دقائق", min10_option: "قبل 10 دقائق",
+    min15_option: "قبل 15 دقيقة", min30_option: "قبل 30 دقيقة", min60_option: "قبل ساعة",
+    exam_notify_label: "إشعارات الاختبارات", exam_notify_sub: "تذكير قبل يوم وقبل ساعتين من كل اختبار",
+    language_label: "اللغة", language_sub: "لغة واجهة التطبيق",
+    accent_title: "لون التطبيق",
+    backup_title: "نسخة احتياطية من بياناتك",
+    export_label: "تصدير نسخة احتياطية", export_sub: "يحفظ كل بياناتك بملف واحد على جهازك", export_btn: "تصدير",
+    import_label: "استيراد نسخة احتياطية", import_sub: "يرجع بياناتك من ملف محفوظ سابقًا", import_btn: "استيراد",
+    reset_label: "حذف كل البيانات", reset_sub: "يمسح كل شي نهائيًا من هذا الجهاز", reset_btn: "حذف",
+    footnote: "جميع بياناتك محفوظة على جهازك فقط، ولا تُشارك مع أي طرف آخر.",
+    nav_home: "الرئيسية", nav_schedule: "الجدول", nav_exams: "الاختبارات", nav_tasks: "المهام", nav_settings: "الإعدادات",
+    no_lectures_today: "لا توجد محاضرات اليوم 🎉",
+    no_upcoming_classes: "لا توجد محاضرات قادمة",
+    no_upcoming_exam: "لا يوجد اختبار قادم",
+    no_courses_yet: "لا توجد محاضرات مضافة بعد.",
+    no_exams_yet: "لا توجد اختبارات مضافة بعد.",
+    no_tasks_yet: "لا توجد مهام حالياً. أضف أول مهمة من الأعلى.",
+    all_tasks_done: "كل مهامك منجزة 🎉",
+    toast_course_saved: "تم حفظ المقرر ✓",
+    toast_task_added: "تمت إضافة المهمة ✓",
+    toast_course_deleted: "تم حذف المقرر",
+    toast_exam_deleted: "تم حذف الاختبار",
+    toast_task_deleted: "تم حذف المهمة",
+    undo_label: "تراجع",
+    choose_day_alert: "اختر يومًا واحدًا على الأقل للمحاضرة.",
+    end_after_start_alert: "وقت النهاية يجب أن يكون بعد وقت البداية.",
+    exam_end_after_start_alert: "وقت نهاية الاختبار يجب أن يكون بعد البداية.",
+    no_notification_support: "المتصفح لا يدعم الإشعارات.",
+    notification_denied: "لم يتم منح إذن الإشعارات.",
+    notification_enabled: "مفعّل", notification_disabled: "تفعيل",
+    exam_reminder_title: "تذكير اختبار",
+    exam_reminder_day: (name, type) => `${name} (${type}) بعد أقل من يوم.`,
+    exam_reminder_2h: (name, type) => `${name} (${type}) بعد أقل من ساعتين.`,
+    lecture_reminder_title: "تذكير محاضرة",
+    lecture_reminder_body: (name, time, loc) => `${name} تبدأ الساعة ${time} في ${loc}.`,
+    reset_confirm: "متأكد تبي تحذف كل بياناتك نهائيًا؟ هذا الإجراء لا يمكن التراجع عنه.",
+    import_success: "تم استيراد بياناتك بنجاح ✓",
+    import_failed: "الملف غير صالح، تأكد إنه نفس ملف النسخة الاحتياطية.",
+    countdown_next_exam: (name, type, d, h, m) => `أقرب اختبار (${name} - ${type}) بعد ${d} يوم ${h} ساعة ${m} دقيقة`,
+  },
+  en: {
+    home_greeting: "Hello 👋",
+    install_title: "Install the app",
+    install_sub: "Open it from your home screen like a regular app",
+    install_btn: "Install",
+    next_exam_label: "Next Exam",
+    next_class_label: "Next Class",
+    no_courses_short: "No courses added yet",
+    today_classes_title: "Today's Classes",
+    quick_overview_title: "Quick Overview",
+    quick_courses_label: "Courses",
+    quick_exams_label: "Upcoming Exams",
+    quick_tasks_label: "Tasks Left",
+    schedule_title: "My Schedule",
+    add_course_summary: "+ Add / Edit Course",
+    course_name_label: "Course Name & Code",
+    instructor_label: "Instructor Name",
+    section_label: "Section",
+    location_label: "Building & Room",
+    lecture_start_label: "Lecture Start Time",
+    lecture_end_label: "Lecture End Time",
+    choose_type_title: "Choose Type",
+    choose_days_title: "Choose Days",
+    final_exam_title: "Final Exam (optional)",
+    exam_date_label: "Exam Date",
+    exam_start_label: "Start Time",
+    exam_end_label: "End Time",
+    save_course_btn: "Save Course",
+    cancel_edit_btn: "Cancel Edit",
+    my_courses_title: "Your Courses",
+    search_placeholder: "Search by course, instructor, or location...",
+    th_course: "Course", th_section: "Section", th_instructor: "Instructor",
+    th_days: "Days", th_time: "Time", th_type: "Type", th_location: "Location", th_actions: "Actions",
+    exams_title: "Exams",
+    add_exam_summary: "+ Add / Edit Exam",
+    exam_course_label: "Course Name",
+    exam_type_label: "Exam Type",
+    choose_type_option: "Choose type",
+    midterm_option: "Midterm", final_option: "Final", quiz_option: "Quiz",
+    date_label: "Date", time_from_label: "Start Time", time_to_label: "End Time",
+    save_exam_btn: "Save Exam",
+    tasks_title: "Task List",
+    task_placeholder: "e.g. Submit programming assignment",
+    hide_done_label: "Hide completed tasks",
+    settings_title: "Settings",
+    dark_mode_label: "Dark Mode", dark_mode_sub: "Toggle the app's appearance",
+    reminder_label: "Lecture Reminder", reminder_sub: "Sends a notification before each lecture starts",
+    off_option: "Off", min5_option: "5 minutes before", min10_option: "10 minutes before",
+    min15_option: "15 minutes before", min30_option: "30 minutes before", min60_option: "1 hour before",
+    exam_notify_label: "Exam Notifications", exam_notify_sub: "Reminds you a day and two hours before each exam",
+    language_label: "Language", language_sub: "App interface language",
+    accent_title: "App Color",
+    backup_title: "Backup Your Data",
+    export_label: "Export Backup", export_sub: "Saves all your data as one file on your device", export_btn: "Export",
+    import_label: "Import Backup", import_sub: "Restores your data from a previously saved file", import_btn: "Import",
+    reset_label: "Delete All Data", reset_sub: "Permanently erases everything on this device", reset_btn: "Delete",
+    footnote: "All your data stays on this device only and is never shared with anyone.",
+    nav_home: "Home", nav_schedule: "Schedule", nav_exams: "Exams", nav_tasks: "Tasks", nav_settings: "Settings",
+    no_lectures_today: "No lectures today 🎉",
+    no_upcoming_classes: "No upcoming classes",
+    no_upcoming_exam: "No upcoming exam",
+    no_courses_yet: "No courses added yet.",
+    no_exams_yet: "No exams added yet.",
+    no_tasks_yet: "No tasks yet. Add your first one above.",
+    all_tasks_done: "All your tasks are done 🎉",
+    toast_course_saved: "Course saved ✓",
+    toast_task_added: "Task added ✓",
+    toast_course_deleted: "Course deleted",
+    toast_exam_deleted: "Exam deleted",
+    toast_task_deleted: "Task deleted",
+    undo_label: "Undo",
+    choose_day_alert: "Please choose at least one lecture day.",
+    end_after_start_alert: "End time must be after the start time.",
+    exam_end_after_start_alert: "Exam end time must be after the start time.",
+    no_notification_support: "Your browser does not support notifications.",
+    notification_denied: "Notification permission was not granted.",
+    notification_enabled: "Enabled", notification_disabled: "Enable",
+    exam_reminder_title: "Exam Reminder",
+    exam_reminder_day: (name, type) => `${name} (${type}) is less than a day away.`,
+    exam_reminder_2h: (name, type) => `${name} (${type}) is less than two hours away.`,
+    lecture_reminder_title: "Lecture Reminder",
+    lecture_reminder_body: (name, time, loc) => `${name} starts at ${time} in ${loc}.`,
+    reset_confirm: "Are you sure you want to permanently delete all your data? This cannot be undone.",
+    import_success: "Your data was imported successfully ✓",
+    import_failed: "Invalid file. Make sure it's the same backup file.",
+    countdown_next_exam: (name, type, d, h, m) => `Next exam (${name} - ${type}) in ${d}d ${h}h ${m}m`,
+  },
+};
+
+function currentLang() {
+  return localStorage.getItem("uni_schedule_lang") || "ar";
+}
+
+function t(key, ...args) {
+  const entry = TRANSLATIONS[currentLang()][key] ?? TRANSLATIONS.ar[key] ?? key;
+  return typeof entry === "function" ? entry(...args) : entry;
+}
+
+function applyLanguage(lang) {
+  localStorage.setItem("uni_schedule_lang", lang);
+  const html = document.getElementById("htmlRoot");
+  html.setAttribute("lang", lang);
+  html.setAttribute("dir", lang === "en" ? "ltr" : "rtl");
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
+  });
+
+  const langToggle = document.getElementById("langToggle");
+  langToggle.textContent = lang === "ar" ? "العربية" : "English";
+
+  renderAll();
+}
+
+document.getElementById("langToggle").addEventListener("click", () => {
+  applyLanguage(currentLang() === "ar" ? "en" : "ar");
+});
 
 // ---------- theme ----------
 const themeToggle = document.getElementById("themeToggle");
@@ -99,6 +327,25 @@ function toggleTheme() {
 
 themeToggle.addEventListener("click", toggleTheme);
 themeToggleHome.addEventListener("click", toggleTheme);
+
+// ---------- accent color ----------
+const accentRow = document.getElementById("accentRow");
+
+function applyAccent(accent) {
+  document.documentElement.setAttribute("data-accent", accent);
+  accentRow.querySelectorAll(".accent-swatch").forEach((s) => s.classList.toggle("active", s.dataset.accent === accent));
+}
+
+function initAccent() {
+  applyAccent(localStorage.getItem("uni_schedule_accent") || "green");
+}
+
+accentRow.querySelectorAll(".accent-swatch").forEach((swatch) => {
+  swatch.addEventListener("click", () => {
+    localStorage.setItem("uni_schedule_accent", swatch.dataset.accent);
+    applyAccent(swatch.dataset.accent);
+  });
+});
 
 // ---------- course form pills ----------
 const typeRow = document.getElementById("typeRow");
@@ -151,7 +398,7 @@ dayPills.forEach((pill) => {
 highlightToday();
 
 // ---------- toast ----------
-function showToast(message) {
+function showToast(message, actionLabel, actionFn) {
   let toast = document.getElementById("appToast");
   if (!toast) {
     toast = document.createElement("div");
@@ -159,12 +406,22 @@ function showToast(message) {
     toast.className = "app-toast";
     document.body.appendChild(toast);
   }
-  toast.textContent = message;
+  toast.innerHTML = `<span>${message}</span>`;
+  if (actionLabel && actionFn) {
+    const btn = document.createElement("button");
+    btn.className = "toast-action";
+    btn.textContent = actionLabel;
+    btn.addEventListener("click", () => {
+      actionFn();
+      toast.classList.remove("show");
+    });
+    toast.appendChild(btn);
+  }
   toast.classList.remove("show");
   void toast.offsetWidth;
   toast.classList.add("show");
   clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+  showToast._t = setTimeout(() => toast.classList.remove("show"), actionLabel ? 4000 : 1800);
 }
 
 
@@ -186,7 +443,7 @@ function renderTimeGrid() {
   timeGrid.innerHTML = "";
 
   if (!courses.length) {
-    timeGrid.innerHTML = `<div class="empty-state">لا توجد محاضرات مضافة بعد.</div>`;
+    timeGrid.innerHTML = `<div class="empty-state">${emptyIcon()}${t("no_courses_yet")}</div>`;
     return;
   }
 
@@ -296,7 +553,7 @@ function renderExams() {
   const sorted = exams.slice().sort((a, b) => toDateTime(a.date, a.start) - toDateTime(b.date, b.start));
 
   if (!sorted.length) {
-    examsList.innerHTML = `<div class="empty-state">لا توجد اختبارات مضافة بعد.</div>`;
+    examsList.innerHTML = `<div class="empty-state">${emptyIcon()}${t("no_exams_yet")}</div>`;
     return;
   }
 
@@ -332,12 +589,12 @@ function getNextUpcomingExam() {
 
 function updateCountdown() {
   const next = getNextUpcomingExam();
-  if (!next) { countdown.textContent = "لا يوجد اختبار قادم"; return; }
+  if (!next) { countdown.textContent = t("no_upcoming_exam"); return; }
   const diffMs = next.dateTime - new Date();
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
   const mins = Math.floor((diffMs / (1000 * 60)) % 60);
-  countdown.textContent = `أقرب اختبار (${next.courseName} - ${next.type}) بعد ${days} يوم ${hours} ساعة ${mins} دقيقة`;
+  countdown.textContent = t("countdown_next_exam", next.courseName, next.type, days, hours, mins);
 }
 
 // ---------- render all ----------
@@ -367,11 +624,11 @@ document.getElementById("courseForm").addEventListener("submit", (e) => {
   const id = document.getElementById("courseId").value || generateId();
   const days = getSelectedDays();
 
-  if (!days.length) { alert("اختر يومًا واحدًا على الأقل للمحاضرة."); return; }
+  if (!days.length) { alert(t("choose_day_alert")); return; }
 
   const start = document.getElementById("courseStart").value;
   const end = document.getElementById("courseEnd").value;
-  if (timeToMinutes(end) <= timeToMinutes(start)) { alert("وقت النهاية يجب أن يكون بعد وقت البداية."); return; }
+  if (timeToMinutes(end) <= timeToMinutes(start)) { alert(t("end_after_start_alert")); return; }
 
   const idx = courses.findIndex((c) => c.id === id);
   const existingColor = idx >= 0 ? courses[idx].colorClass : null;
@@ -418,7 +675,7 @@ document.getElementById("courseForm").addEventListener("submit", (e) => {
   saveData(STORAGE_KEYS.courses, courses);
   resetCourseForm();
   renderAll();
-  showToast("تم حفظ المقرر ✓");
+  showToast(t("toast_course_saved"));
 });
 
 document.getElementById("examForm").addEventListener("submit", (e) => {
@@ -426,7 +683,7 @@ document.getElementById("examForm").addEventListener("submit", (e) => {
   const id = document.getElementById("examId").value || generateId();
   const start = document.getElementById("examStart").value;
   const end = document.getElementById("examEnd").value;
-  if (timeToMinutes(end) <= timeToMinutes(start)) { alert("وقت نهاية الاختبار يجب أن يكون بعد البداية."); return; }
+  if (timeToMinutes(end) <= timeToMinutes(start)) { alert(t("exam_end_after_start_alert")); return; }
 
   const exam = {
     id,
@@ -469,13 +726,23 @@ document.addEventListener("click", (e) => {
 
   if (target.matches("button[data-type='course'].delete")) {
     const course = courses.find((c) => c.id === target.dataset.id);
-    if (course && course.linkedExamId) {
+    if (!course) return;
+    let removedExam = null;
+    if (course.linkedExamId) {
+      removedExam = exams.find((x) => x.id === course.linkedExamId) || null;
       exams = exams.filter((x) => x.id !== course.linkedExamId);
       saveData(STORAGE_KEYS.exams, exams);
     }
     courses = courses.filter((c) => c.id !== target.dataset.id);
     saveData(STORAGE_KEYS.courses, courses);
     renderAll();
+    showToast(t("toast_course_deleted"), t("undo_label"), () => {
+      courses.push(course);
+      if (removedExam) exams.push(removedExam);
+      saveData(STORAGE_KEYS.courses, courses);
+      saveData(STORAGE_KEYS.exams, exams);
+      renderAll();
+    });
   }
 
   if (target.matches("button[data-type='exam'].edit")) {
@@ -490,11 +757,20 @@ document.addEventListener("click", (e) => {
   }
 
   if (target.matches("button[data-type='exam'].delete")) {
+    const exam = exams.find((x) => x.id === target.dataset.id);
+    const affectedCourses = courses.filter((c) => c.linkedExamId === target.dataset.id);
     exams = exams.filter((x) => x.id !== target.dataset.id);
-    courses.forEach((c) => { if (c.linkedExamId === target.dataset.id) c.linkedExamId = null; });
+    affectedCourses.forEach((c) => { c.linkedExamId = null; });
     saveData(STORAGE_KEYS.exams, exams);
     saveData(STORAGE_KEYS.courses, courses);
     renderAll();
+    showToast(t("toast_exam_deleted"), t("undo_label"), () => {
+      if (exam) exams.push(exam);
+      affectedCourses.forEach((c) => { c.linkedExamId = exam ? exam.id : c.linkedExamId; });
+      saveData(STORAGE_KEYS.exams, exams);
+      saveData(STORAGE_KEYS.courses, courses);
+      renderAll();
+    });
   }
 });
 
@@ -503,9 +779,34 @@ document.getElementById("examReset").addEventListener("click", resetExamForm);
 document.getElementById("exportBtn").addEventListener("click", () => window.print());
 
 // ---------- home dashboard ----------
+function getNextUpcomingClass() {
+  if (!courses.length) return null;
+  const now = new Date();
+  const candidates = [];
+
+  for (let offset = 0; offset < 7; offset++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + offset);
+    const jsDay = d.getDay();
+    const dayKey = (DAYS.find((x) => x.jsDay === jsDay) || {}).key;
+    if (!dayKey) continue;
+
+    courses.filter((c) => c.days.includes(dayKey)).forEach((c) => {
+      const dt = new Date(d);
+      const [h, m] = c.start.split(":").map(Number);
+      dt.setHours(h, m, 0, 0);
+      if (dt > now) candidates.push({ course: c, dateTime: dt });
+    });
+  }
+
+  candidates.sort((a, b) => a.dateTime - b.dateTime);
+  return candidates[0] || null;
+}
+
 function renderHome() {
   const todayEl = document.getElementById("todayClasses");
   const homeCountdown = document.getElementById("homeCountdown");
+  const nextClassWidget = document.getElementById("nextClassWidget");
 
   const jsToday = new Date().getDay();
   const todayKey = (DAYS.find((d) => d.jsDay === jsToday) || {}).key;
@@ -515,7 +816,7 @@ function renderHome() {
     .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
   if (!todays.length) {
-    todayEl.innerHTML = `<div class="empty-state">لا توجد محاضرات اليوم 🎉</div>`;
+    todayEl.innerHTML = `<div class="empty-state">${emptyIcon()}${t("no_lectures_today")}</div>`;
   } else {
     todayEl.innerHTML = todays.map((c) => `
       <div class="class-item">
@@ -531,23 +832,37 @@ function renderHome() {
   const next = getNextUpcomingExam();
   homeCountdown.textContent = next
     ? `${next.courseName} (${next.type}) — ${formatDate(next.date)}`
-    : "لا يوجد اختبار قادم";
+    : t("no_upcoming_exam");
+
+  const nextClass = getNextUpcomingClass();
+  if (nextClass) {
+    const dayLabel = DAYS.find((d) => d.jsDay === nextClass.dateTime.getDay())?.label || "";
+    nextClassWidget.textContent = `${nextClass.course.name.split(" - ")[0]} — ${dayLabel} ${nextClass.course.start}`;
+  } else {
+    nextClassWidget.textContent = t("no_upcoming_classes");
+  }
 
   document.getElementById("quickCourseCount").textContent = courses.length;
   document.getElementById("quickExamCount").textContent = exams.filter((e) => toDateTime(e.date, e.start) > new Date()).length;
+  document.getElementById("quickTaskCount").textContent = tasks.filter((t) => !t.done).length;
 }
 
 // ---------- tasks ----------
 const taskForm = document.getElementById("taskForm");
 const tasksList = document.getElementById("tasksList");
 
+const hideDoneCheckbox = document.getElementById("hideDoneCheckbox");
+
 function renderTasks() {
-  if (!tasks.length) {
-    tasksList.innerHTML = `<div class="empty-state">لا توجد مهام حالياً. أضف أول مهمة من الأعلى.</div>`;
+  const hideDone = hideDoneCheckbox.checked;
+  const visible = hideDone ? tasks.filter((t) => !t.done) : tasks;
+
+  if (!visible.length) {
+    tasksList.innerHTML = `<div class="empty-state">${emptyIcon()}${tasks.length ? t("all_tasks_done") : t("no_tasks_yet")}</div>`;
     return;
   }
 
-  const sorted = tasks.slice().sort((a, b) => {
+  const sorted = visible.slice().sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
@@ -566,6 +881,8 @@ function renderTasks() {
   `).join("");
 }
 
+hideDoneCheckbox.addEventListener("change", renderTasks);
+
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = document.getElementById("taskText").value.trim();
@@ -575,7 +892,7 @@ taskForm.addEventListener("submit", (e) => {
   saveData(STORAGE_KEYS.tasks, tasks);
   taskForm.reset();
   renderTasks();
-  showToast("تمت إضافة المهمة ✓");
+  showToast(t("toast_task_added"));
 });
 
 tasksList.addEventListener("click", (e) => {
@@ -591,12 +908,99 @@ tasksList.addEventListener("click", (e) => {
   }
 
   if (target.matches(".task-delete")) {
-    tasks = tasks.filter((t) => t.id !== target.dataset.id);
+    const removed = tasks.find((task) => task.id === target.dataset.id);
+    tasks = tasks.filter((task) => task.id !== target.dataset.id);
     saveData(STORAGE_KEYS.tasks, tasks);
     renderTasks();
+    showToast(t("toast_task_deleted"), t("undo_label"), () => {
+      if (removed) tasks.push(removed);
+      saveData(STORAGE_KEYS.tasks, tasks);
+      renderTasks();
+    });
   }
 });
 
+
+// ---------- backup / restore / reset ----------
+const ALL_DATA_KEYS = Object.values(STORAGE_KEYS);
+
+document.getElementById("exportDataBtn").addEventListener("click", () => {
+  const payload = {};
+  ALL_DATA_KEYS.forEach((key) => {
+    const value = localStorage.getItem(key);
+    if (value !== null) payload[key] = JSON.parse(value);
+  });
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `uni-schedule-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+const importDataInput = document.getElementById("importDataInput");
+document.getElementById("importDataBtn").addEventListener("click", () => importDataInput.click());
+
+importDataInput.addEventListener("change", () => {
+  const file = importDataInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      ALL_DATA_KEYS.forEach((key) => {
+        if (key in data) localStorage.setItem(key, JSON.stringify(data[key]));
+      });
+      showToast(t("import_success"));
+      setTimeout(() => location.reload(), 900);
+    } catch {
+      alert(t("import_failed"));
+    }
+  };
+  reader.readAsText(file);
+  importDataInput.value = "";
+});
+
+document.getElementById("resetDataBtn").addEventListener("click", () => {
+  if (!confirm(t("reset_confirm"))) return;
+  ALL_DATA_KEYS.forEach((key) => localStorage.removeItem(key));
+  localStorage.removeItem("uni_schedule_theme");
+  localStorage.removeItem("uni_schedule_accent");
+  localStorage.removeItem("uni_schedule_lang");
+  location.reload();
+});
+
+// ---------- install prompt ----------
+let deferredInstallPrompt = null;
+const installBanner = document.getElementById("installBanner");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (localStorage.getItem("uni_schedule_install_dismissed") !== "true") {
+    installBanner.classList.remove("hidden");
+  }
+});
+
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installBanner.classList.add("hidden");
+});
+
+document.getElementById("dismissInstallBtn").addEventListener("click", () => {
+  installBanner.classList.add("hidden");
+  localStorage.setItem("uni_schedule_install_dismissed", "true");
+});
+
+window.addEventListener("appinstalled", () => {
+  installBanner.classList.add("hidden");
+});
 
 const reminderOffsetSelect = document.getElementById("reminderOffset");
 const notifyBtn = document.getElementById("notifyBtn");
@@ -606,7 +1010,7 @@ function initSettings() {
   if (savedOffset !== null) reminderOffsetSelect.value = savedOffset;
 
   const examNotifyEnabled = localStorage.getItem(STORAGE_KEYS.examNotifyEnabled) === "true";
-  notifyBtn.textContent = examNotifyEnabled ? "مفعّل" : "تفعيل";
+  notifyBtn.textContent = examNotifyEnabled ? t("notification_enabled") : t("notification_disabled");
   notifyBtn.classList.toggle("on", examNotifyEnabled);
 }
 
@@ -615,13 +1019,13 @@ reminderOffsetSelect.addEventListener("change", () => {
 });
 
 function requestNotifications() {
-  if (!("Notification" in window)) { alert("المتصفح لا يدعم الإشعارات."); return; }
+  if (!("Notification" in window)) { alert(t("no_notification_support")); return; }
   Notification.requestPermission().then((permission) => {
     const granted = permission === "granted";
     localStorage.setItem(STORAGE_KEYS.examNotifyEnabled, String(granted));
-    notifyBtn.textContent = granted ? "مفعّل" : "تفعيل";
+    notifyBtn.textContent = granted ? t("notification_enabled") : t("notification_disabled");
     notifyBtn.classList.toggle("on", granted);
-    if (!granted) alert("لم يتم منح إذن الإشعارات.");
+    if (!granted) alert(t("notification_denied"));
   });
 }
 
@@ -650,11 +1054,11 @@ function checkExamNotifications() {
     const twoHourKey = `${exam.id}_2h`;
 
     if (now >= oneDayBefore && !notifiedMap[dayKey]) {
-      sendNotification("تذكير اختبار", `${exam.courseName} (${exam.type}) بعد أقل من يوم.`);
+      sendNotification(t("exam_reminder_title"), t("exam_reminder_day", exam.courseName, exam.type));
       notifiedMap[dayKey] = true;
     }
     if (now >= twoHoursBefore && !notifiedMap[twoHourKey]) {
-      sendNotification("تذكير اختبار", `${exam.courseName} (${exam.type}) بعد أقل من ساعتين.`);
+      sendNotification(t("exam_reminder_title"), t("exam_reminder_2h", exam.courseName, exam.type));
       notifiedMap[twoHourKey] = true;
     }
   });
@@ -679,7 +1083,7 @@ function checkLectureNotifications() {
     const key = `${course.id}_${todayStr}`;
 
     if (now >= notifyAt && now < startDate && !lectureNotifiedMap[key]) {
-      sendNotification("تذكير محاضرة", `${course.name} تبدأ الساعة ${course.start} في ${course.location}.`);
+      sendNotification(t("lecture_reminder_title"), t("lecture_reminder_body", course.name, course.start, course.location));
       lectureNotifiedMap[key] = true;
       saveData(STORAGE_KEYS.lectureNotified, lectureNotifiedMap);
     }
@@ -695,8 +1099,9 @@ setInterval(() => {
 
 // ---------- init ----------
 initTheme();
+initAccent();
 initSettings();
-renderAll();
+applyLanguage(currentLang());
 checkExamNotifications();
 checkLectureNotifications();
 

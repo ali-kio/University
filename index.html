@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,29 +22,49 @@
     <!-- ===== الرئيسية ===== -->
     <section class="tab-panel active" id="tab-home">
       <header class="top-bar">
-        <h1>مرحبًا 👋</h1>
-        <button id="themeToggleHome" class="icon-btn" type="button" title="تبديل الوضع">
+        <h1 data-i18n="home_greeting">مرحبًا 👋</h1>
+        <button id="themeToggleHome" class="icon-btn" type="button" title="تبديل الوضع" aria-label="تبديل الوضع الداكن">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg>
         </button>
       </header>
 
+      <div id="installBanner" class="install-banner hidden">
+        <div>
+          <div class="settings-label" data-i18n="install_title">ثبّت التطبيق على جهازك</div>
+          <div class="settings-sub" data-i18n="install_sub">افتحه من شاشتك الرئيسية زي أي تطبيق عادي</div>
+        </div>
+        <div class="install-actions">
+          <button id="installBtn" class="btn install-btn" type="button" data-i18n="install_btn">تثبيت</button>
+          <button id="dismissInstallBtn" class="icon-btn" type="button" aria-label="إغلاق">✕</button>
+        </div>
+      </div>
+
       <div class="card highlight-card">
-        <div class="highlight-label">أقرب اختبار</div>
+        <div class="highlight-label" data-i18n="next_exam_label">أقرب اختبار</div>
         <div id="homeCountdown" class="highlight-value">لا يوجد اختبار قادم</div>
       </div>
 
-      <h2 class="section-title">حصص اليوم</h2>
+      <div class="card highlight-card-alt">
+        <div class="highlight-label" data-i18n="next_class_label">حصتك القادمة</div>
+        <div id="nextClassWidget" class="highlight-value" data-i18n="no_courses_short">لا توجد محاضرات مضافة</div>
+      </div>
+
+      <h2 class="section-title" data-i18n="today_classes_title">حصص اليوم</h2>
       <div id="todayClasses" class="stack"></div>
 
-      <h2 class="section-title">نظرة سريعة</h2>
+      <h2 class="section-title" data-i18n="quick_overview_title">نظرة سريعة</h2>
       <div class="quick-grid">
         <div class="quick-card">
           <div class="quick-num" id="quickCourseCount">0</div>
-          <div class="quick-label">مقررات</div>
+          <div class="quick-label" data-i18n="quick_courses_label">مقررات</div>
         </div>
         <div class="quick-card">
           <div class="quick-num" id="quickExamCount">0</div>
-          <div class="quick-label">اختبارات قادمة</div>
+          <div class="quick-label" data-i18n="quick_exams_label">اختبارات قادمة</div>
+        </div>
+        <div class="quick-card">
+          <div class="quick-num" id="quickTaskCount">0</div>
+          <div class="quick-label" data-i18n="quick_tasks_label">مهام متبقية</div>
         </div>
       </div>
     </section>
@@ -52,7 +72,7 @@
     <!-- ===== الجدول ===== -->
     <section class="tab-panel" id="tab-schedule">
       <header class="top-bar">
-        <h1>الجدول الدراسي</h1>
+        <h1 data-i18n="schedule_title">الجدول الدراسي</h1>
         <button id="exportBtn" class="icon-btn" type="button" title="طباعة / تصدير PDF">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 14h12v7H6z"/></svg>
         </button>
@@ -71,36 +91,36 @@
       </div>
 
       <details class="collapsible">
-        <summary>+ إضافة / تعديل مقرر</summary>
+        <summary data-i18n="add_course_summary">+ إضافة / تعديل مقرر</summary>
         <form id="courseForm" class="grid-form">
           <input type="hidden" id="courseId" />
 
-          <label>اسم ورمز المقرر <span class="lang-tag">EN</span>
+          <label><span data-i18n="course_name_label">اسم ورمز المقرر</span> <span class="lang-tag">EN</span>
             <input id="courseName" type="text" required placeholder="Example: ITCS223" />
           </label>
 
-          <label>اسم المدرس <span class="lang-tag">AR</span>
+          <label><span data-i18n="instructor_label">اسم المدرس</span> <span class="lang-tag">AR</span>
             <input id="instructor" type="text" required placeholder="مثال: د. أحمد" />
           </label>
 
-          <label>الشعبة
+          <label><span data-i18n="section_label">الشعبة</span>
             <input id="section" type="text" required placeholder="مثال: 1" />
           </label>
 
-          <label>المبنى والقاعة <span class="lang-tag">EN</span>
+          <label><span data-i18n="location_label">المبنى والقاعة</span> <span class="lang-tag">EN</span>
             <input id="location" type="text" required placeholder="Example: S40/2046" />
           </label>
 
-          <label>وقت المحاضرة (من)
+          <label><span data-i18n="lecture_start_label">وقت المحاضرة (من)</span>
             <input id="courseStart" type="time" required />
           </label>
 
-          <label>وقت المحاضرة (إلى)
+          <label><span data-i18n="lecture_end_label">وقت المحاضرة (إلى)</span>
             <input id="courseEnd" type="time" required />
           </label>
 
           <div class="field-block">
-            <div class="field-block-title">اختر النوع</div>
+            <div class="field-block-title" data-i18n="choose_type_title">اختر النوع</div>
             <div class="pill-row" id="typeRow">
               <button type="button" class="pill-btn" data-type="LEC">LEC</button>
               <button type="button" class="pill-btn" data-type="LAB">LAB</button>
@@ -109,7 +129,7 @@
           </div>
 
           <div class="field-block">
-            <div class="field-block-title">اختر الأيام</div>
+            <div class="field-block-title" data-i18n="choose_days_title">اختر الأيام</div>
             <div class="pill-row" id="daysRow">
               <button type="button" class="pill-btn" data-day="H">H</button>
               <button type="button" class="pill-btn" data-day="W">W</button>
@@ -120,38 +140,39 @@
           </div>
 
           <div class="field-block">
-            <div class="field-block-title">الامتحان النهائي (اختياري)</div>
-            <label>تاريخ الاختبار
+            <div class="field-block-title" data-i18n="final_exam_title">الامتحان النهائي (اختياري)</div>
+            <label><span data-i18n="exam_date_label">تاريخ الاختبار</span>
               <input id="courseExamDate" type="date" />
             </label>
-            <label>وقت البدء
+            <label><span data-i18n="exam_start_label">وقت البدء</span>
               <input id="courseExamStart" type="time" />
             </label>
-            <label>وقت الانتهاء
+            <label><span data-i18n="exam_end_label">وقت الانتهاء</span>
               <input id="courseExamEnd" type="time" />
             </label>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn">حفظ المقرر</button>
-            <button type="button" id="courseReset" class="btn btn-secondary">إلغاء التعديل</button>
+            <button type="submit" class="btn" data-i18n="save_course_btn">حفظ المقرر</button>
+            <button type="button" id="courseReset" class="btn btn-secondary" data-i18n="cancel_edit_btn">إلغاء التعديل</button>
           </div>
         </form>
       </details>
 
-      <h2 class="section-title">مقرراتك</h2>
+      <h2 class="section-title" data-i18n="my_courses_title">مقرراتك</h2>
+      <input id="courseSearch" type="text" class="search-input" placeholder="ابحث باسم المقرر أو المدرس أو الموقع..." data-i18n-placeholder="search_placeholder" />
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>المقرر</th>
-              <th>الشعبة</th>
-              <th>الدكتور</th>
-              <th>الأيام</th>
-              <th>الوقت</th>
-              <th>النوع</th>
-              <th>الموقع</th>
-              <th>إجراءات</th>
+              <th data-i18n="th_course">المقرر</th>
+              <th data-i18n="th_section">الشعبة</th>
+              <th data-i18n="th_instructor">الدكتور</th>
+              <th data-i18n="th_days">الأيام</th>
+              <th data-i18n="th_time">الوقت</th>
+              <th data-i18n="th_type">النوع</th>
+              <th data-i18n="th_location">الموقع</th>
+              <th data-i18n="th_actions">إجراءات</th>
             </tr>
           </thead>
           <tbody id="coursesTableBody"></tbody>
@@ -162,7 +183,7 @@
     <!-- ===== الاختبارات ===== -->
     <section class="tab-panel" id="tab-exams">
       <header class="top-bar">
-        <h1>الاختبارات</h1>
+        <h1 data-i18n="exams_title">الاختبارات</h1>
       </header>
 
       <div class="exams-header">
@@ -171,37 +192,37 @@
       <div id="examsList" class="exam-list"></div>
 
       <details class="collapsible">
-        <summary>+ إضافة / تعديل موعد اختبار</summary>
+        <summary data-i18n="add_exam_summary">+ إضافة / تعديل موعد اختبار</summary>
         <form id="examForm" class="grid-form">
           <input type="hidden" id="examId" />
 
-          <label>اسم المقرر
+          <label><span data-i18n="exam_course_label">اسم المقرر</span>
             <input id="examCourseName" type="text" required placeholder="TL101 - TURKISH LANGUAGE" />
           </label>
 
-          <label>نوع الاختبار
+          <label><span data-i18n="exam_type_label">نوع الاختبار</span>
             <select id="examType" required>
-              <option value="">اختر النوع</option>
-              <option value="نصفي">نصفي</option>
-              <option value="نهائي">نهائي</option>
-              <option value="كويز">كويز</option>
+              <option value="" data-i18n="choose_type_option">اختر النوع</option>
+              <option value="نصفي" data-i18n="midterm_option">نصفي</option>
+              <option value="نهائي" data-i18n="final_option">نهائي</option>
+              <option value="كويز" data-i18n="quiz_option">كويز</option>
             </select>
           </label>
 
-          <label>التاريخ
+          <label><span data-i18n="date_label">التاريخ</span>
             <input id="examDate" type="date" required />
           </label>
 
-          <label>الوقت (من)
+          <label><span data-i18n="time_from_label">الوقت (من)</span>
             <input id="examStart" type="time" required />
           </label>
 
-          <label>الوقت (إلى)
+          <label><span data-i18n="time_to_label">الوقت (إلى)</span>
             <input id="examEnd" type="time" required />
           </label>
 
           <div class="form-actions">
-            <button type="submit" class="btn">حفظ الاختبار</button>
+            <button type="submit" class="btn" data-i18n="save_exam_btn">حفظ الاختبار</button>
             <button type="button" id="examReset" class="btn btn-secondary">إلغاء التعديل</button>
           </div>
         </form>
@@ -211,14 +232,19 @@
     <!-- ===== المهام ===== -->
     <section class="tab-panel" id="tab-tasks">
       <header class="top-bar">
-        <h1>قائمة المهام</h1>
+        <h1 data-i18n="tasks_title">قائمة المهام</h1>
       </header>
 
       <form id="taskForm" class="task-add-row">
-        <input id="taskText" type="text" required placeholder="مثال: تسليم واجب البرمجة" />
+        <input id="taskText" type="text" required placeholder="مثال: تسليم واجب البرمجة" data-i18n-placeholder="task_placeholder" />
         <input id="taskDate" type="date" />
         <button type="submit" class="btn task-add-btn">+</button>
       </form>
+
+      <label class="hide-done-row">
+        <input type="checkbox" id="hideDoneCheckbox" />
+        <span data-i18n="hide_done_label">إخفاء المهام المنجزة</span>
+      </label>
 
       <div id="tasksList" class="stack task-list"></div>
     </section>
@@ -226,43 +252,85 @@
     <!-- ===== الإعدادات ===== -->
     <section class="tab-panel" id="tab-settings">
       <header class="top-bar">
-        <h1>الإعدادات</h1>
+        <h1 data-i18n="settings_title">الإعدادات</h1>
       </header>
 
       <div class="card settings-list">
         <div class="settings-row">
           <div>
-            <div class="settings-label">الوضع الداكن</div>
-            <div class="settings-sub">تبديل مظهر التطبيق</div>
+            <div class="settings-label" data-i18n="dark_mode_label">الوضع الداكن</div>
+            <div class="settings-sub" data-i18n="dark_mode_sub">تبديل مظهر التطبيق</div>
           </div>
           <button id="themeToggle" class="switch-btn" type="button">تفعيل</button>
         </div>
 
         <div class="settings-row">
           <div>
-            <div class="settings-label">تذكير قبل المحاضرة</div>
-            <div class="settings-sub">يرسل إشعار قبل بداية أي محاضرة</div>
+            <div class="settings-label" data-i18n="reminder_label">تذكير قبل المحاضرة</div>
+            <div class="settings-sub" data-i18n="reminder_sub">يرسل إشعار قبل بداية أي محاضرة</div>
           </div>
           <select id="reminderOffset" class="settings-select">
-            <option value="0">إيقاف</option>
-            <option value="5">قبل 5 دقائق</option>
-            <option value="10" selected>قبل 10 دقائق</option>
-            <option value="15">قبل 15 دقيقة</option>
-            <option value="30">قبل 30 دقيقة</option>
-            <option value="60">قبل ساعة</option>
+            <option value="0" data-i18n="off_option">إيقاف</option>
+            <option value="5" data-i18n="min5_option">قبل 5 دقائق</option>
+            <option value="10" selected data-i18n="min10_option">قبل 10 دقائق</option>
+            <option value="15" data-i18n="min15_option">قبل 15 دقيقة</option>
+            <option value="30" data-i18n="min30_option">قبل 30 دقيقة</option>
+            <option value="60" data-i18n="min60_option">قبل ساعة</option>
           </select>
         </div>
 
         <div class="settings-row">
           <div>
-            <div class="settings-label">إشعارات الاختبارات</div>
-            <div class="settings-sub">تذكير قبل يوم وقبل ساعتين من كل اختبار</div>
+            <div class="settings-label" data-i18n="exam_notify_label">إشعارات الاختبارات</div>
+            <div class="settings-sub" data-i18n="exam_notify_sub">تذكير قبل يوم وقبل ساعتين من كل اختبار</div>
           </div>
           <button id="notifyBtn" class="switch-btn" type="button">تفعيل</button>
         </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label" data-i18n="language_label">اللغة</div>
+            <div class="settings-sub" data-i18n="language_sub">لغة واجهة التطبيق</div>
+          </div>
+          <button id="langToggle" class="switch-btn" type="button">العربية</button>
+        </div>
       </div>
 
-      <p class="settings-footnote">جميع بياناتك محفوظة على جهازك فقط، ولا تُشارك مع أي طرف آخر.</p>
+      <h2 class="section-title" data-i18n="accent_title">لون التطبيق</h2>
+      <div class="accent-row" id="accentRow">
+        <button class="accent-swatch" data-accent="green" style="--sw:#2f8f66"></button>
+        <button class="accent-swatch" data-accent="blue" style="--sw:#2f6f9f"></button>
+        <button class="accent-swatch" data-accent="purple" style="--sw:#7a5fc4"></button>
+        <button class="accent-swatch" data-accent="orange" style="--sw:#c67a2e"></button>
+        <button class="accent-swatch" data-accent="pink" style="--sw:#c4527a"></button>
+      </div>
+
+      <h2 class="section-title" data-i18n="backup_title">نسخة احتياطية من بياناتك</h2>
+      <div class="card settings-list">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label" data-i18n="export_label">تصدير نسخة احتياطية</div>
+            <div class="settings-sub" data-i18n="export_sub">يحفظ كل بياناتك بملف واحد على جهازك</div>
+          </div>
+          <button id="exportDataBtn" class="switch-btn" type="button" data-i18n="export_btn">تصدير</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label" data-i18n="import_label">استيراد نسخة احتياطية</div>
+            <div class="settings-sub" data-i18n="import_sub">يرجع بياناتك من ملف محفوظ سابقًا</div>
+          </div>
+          <button id="importDataBtn" class="switch-btn" type="button" data-i18n="import_btn">استيراد</button>
+          <input type="file" id="importDataInput" accept="application/json" hidden />
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label danger-text" data-i18n="reset_label">حذف كل البيانات</div>
+            <div class="settings-sub" data-i18n="reset_sub">يمسح كل شي نهائيًا من هذا الجهاز</div>
+          </div>
+          <button id="resetDataBtn" class="switch-btn danger-btn" type="button" data-i18n="reset_btn">حذف</button>
+        </div>
+      </div>
+
+      <p class="settings-footnote" data-i18n="footnote">جميع بياناتك محفوظة على جهازك فقط، ولا تُشارك مع أي طرف آخر.</p>
     </section>
 
     <!-- ===== شريط التنقل السفلي ===== -->
@@ -271,31 +339,31 @@
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
         </span>
-        <span class="nav-label">الرئيسية</span>
+        <span class="nav-label" data-i18n="nav_home">الرئيسية</span>
       </button>
       <button class="nav-btn" data-tab="tab-schedule">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.2"/><path d="M3.5 9.5h17"/><path d="M8 3v3.5"/><path d="M16 3v3.5"/></svg>
         </span>
-        <span class="nav-label">الجدول</span>
+        <span class="nav-label" data-i18n="nav_schedule">الجدول</span>
       </button>
       <button class="nav-btn" data-tab="tab-exams">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="2"/><path d="M9 3.5V3a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 3v.5"/><path d="m9 12 2 2 4-4"/></svg>
         </span>
-        <span class="nav-label">الاختبارات</span>
+        <span class="nav-label" data-i18n="nav_exams">الاختبارات</span>
       </button>
       <button class="nav-btn" data-tab="tab-tasks">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.3"/><path d="m5.3 7 1 1 1.8-1.8"/><rect x="4" y="14" width="6" height="6" rx="1.3"/><path d="m5.3 17 1 1 1.8-1.8"/><path d="M13 7h7"/><path d="M13 17h7"/></svg>
         </span>
-        <span class="nav-label">المهام</span>
+        <span class="nav-label" data-i18n="nav_tasks">المهام</span>
       </button>
       <button class="nav-btn" data-tab="tab-settings">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8h-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V20a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3h-.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H4a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.5V4a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.5 1H20a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1Z"/></svg>
         </span>
-        <span class="nav-label">الإعدادات</span>
+        <span class="nav-label" data-i18n="nav_settings">الإعدادات</span>
       </button>
     </nav>
   </div>
